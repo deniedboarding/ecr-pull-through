@@ -72,6 +72,15 @@ spec:
         - name: certs
           secret:
             secretName: {{ include "ecr-pull-through.fullname" . }}-tls
+      topologySpreadConstraints:
+      - labelSelector:
+          matchLabels:
+            {{- include "ecr-pull-through.selectorLabels" . | nindent 12 }}
+        matchLabelKeys:
+        - pod-template-hash
+        maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

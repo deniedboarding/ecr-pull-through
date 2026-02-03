@@ -7,12 +7,9 @@ helmDefaults:
   # time in seconds to wait for any individual Kubernetes operation (like Jobs for hooks, and waits on pod/pvc/svc/deployment readiness) (default 300)
   timeout: 600
 repositories:
-- name: jx3
-  url: https://jenkins-x-charts.github.io/repo
+- name: local
+  url: s3://chartmuseum.ticket.se/jx3
 releases:
-- chart: jx3/jx-verify
-  name: jx-verify
-  namespace: '{{ requiredEnv "PREVIEW_NAMESPACE" }}'
 - chart: '../charts/{{ requiredEnv "APP_NAME" }}'
   name: preview
   wait: true
@@ -33,4 +30,6 @@ releases:
     - "secret.jenkins-x.io/replica-source=true"
     - --to
     - '{{ requiredEnv "PREVIEW_NAMESPACE" }}'
-
+- chart: local/users
+  name: users
+  namespace: '{{ requiredEnv "PREVIEW_NAMESPACE" }}'

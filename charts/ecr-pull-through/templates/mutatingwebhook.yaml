@@ -25,3 +25,4 @@ webhooks:
         {{- toYaml .Values.WebhookNamespaceSelector.matchLabels | nindent 8 }}
     sideEffects: None
     admissionReviewVersions: ["v1"]
+    failurePolicy: Ignore

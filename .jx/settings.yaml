@@ -1,0 +1,21 @@
+apiVersion: core.jenkins-x.io/v4beta1
+kind: Settings
+spec:
+  ignoreDevEnvironments: true
+  promoteEnvironments:
+  - key: kube-system-test
+    namespace: kube-system
+    promotionStrategy: Auto
+    repository: jx3-cluster-dev
+    reusePullRequest: true
+  - key: kube-system-staging
+    remoteCluster: true
+    promotionStrategy: Auto
+    namespace: kube-system
+    repository: jx3-cluster-staging
+    reusePullRequest: true
+  - key: kube-system
+    remoteCluster: true
+    promotionStrategy: Manual
+    repository: jx3-cluster-production
+    reusePullRequest: true

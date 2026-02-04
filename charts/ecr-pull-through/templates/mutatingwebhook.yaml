@@ -27,3 +27,4 @@ webhooks:
     sideEffects: None
     admissionReviewVersions: ["v1"]
     failurePolicy: Ignore
+    reinvocationPolicy: IfNeeded

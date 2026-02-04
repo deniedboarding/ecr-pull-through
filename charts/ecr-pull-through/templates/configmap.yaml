@@ -9,7 +9,5 @@ data:
   registries.yaml: |
     awsRegion: {{ required "AWS region is required" .Values.jxRequirements.cluster.region }}
     awsAccountId: {{ required "AWS account ID is required" .Values.jxRequirements.cluster.project }}
-    registries:
-    {{- range .Values.registries }}
-      - {{ . }}
-    {{- end }}
+    registries: {{ toYaml .Values.registries | nindent 4 }}
+    excludedImages: {{ toYaml .Values.excludedImages | nindent 4 }}

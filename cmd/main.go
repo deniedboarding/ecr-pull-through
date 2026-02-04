@@ -134,10 +134,13 @@ func actuallyMutate(body []byte) ([]byte, error) {
 		// helper to reduce repetition: check image against configured registries
 		// and docker hub normalization, append JSONPatch entry when needed.
 		addPatchForImage := func(i int, image string, pathFmt string) bool {
+			if config.excludedImageMap[image] {
+				return false
+			}
 			// explicit registry matches
 			for _, reg := range config.RegistryList() {
 				if strings.HasPrefix(image, reg) {
-					newImage := fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com/%s", config.AwsAccountID, config.AwsRegion, image)
+					newImage := fmt.Sprintf("%s/%s", config.ecrRegistryEndpoint, image)
 					patch := map[string]string{
 						"op":    "replace",
 						"path":  fmt.Sprintf(pathFmt, i),
@@ -153,7 +156,7 @@ func actuallyMutate(body []byte) ([]byte, error) {
 			if normalized, ok := normalizeDockerHubImage(image); ok {
 				for _, reg := range config.RegistryList() {
 					if reg == "docker.io" {
-						newImage := fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com/%s", config.AwsAccountID, config.AwsRegion, normalized)
+						newImage := fmt.Sprintf("%s/%s", config.ecrRegistryEndpoint, normalized)
 						patch := map[string]string{
 							"op":    "replace",
 							"path":  fmt.Sprintf(pathFmt, i),

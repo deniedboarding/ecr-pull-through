@@ -11,6 +11,11 @@ registries:
   - ghcr.io
   - registry.k8s.io
 
+# Images that shouldn't be replaced.
+excludedImages:
+  # auto is a placeholder for the istio sidecar
+- auto
+
 # WebhookNamespaceSelector defines which namespaces the webhook will operate in.
 # Only pods in namespaces with the specified labels will be processed by the webhook.
 # By default, the webhook only processes pods in namespaces labeled with 'pull-through-enabled: "true"'

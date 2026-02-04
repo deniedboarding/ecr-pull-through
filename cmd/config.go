@@ -8,9 +8,13 @@ import (
 )
 
 type Config struct {
-	Registries   []string `yaml:"registries"`
-	AwsAccountID string   `yaml:"awsAccountId"`
-	AwsRegion    string   `yaml:"awsRegion,omitempty"`
+	Registries     []string `yaml:"registries"`
+	AwsAccountID   string   `yaml:"awsAccountId"`
+	AwsRegion      string   `yaml:"awsRegion,omitempty"`
+	ExcludedImages []string `yaml:"excludedImages"`
+
+	excludedImageMap    map[string]bool
+	ecrRegistryEndpoint string
 }
 
 func ReadConf(filename string) (*Config, error) {
@@ -24,6 +28,13 @@ func ReadConf(filename string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("in file %q: %w", filename, err)
 	}
+
+	content.excludedImageMap = make(map[string]bool)
+	for _, image := range content.ExcludedImages {
+		content.excludedImageMap[image] = true
+	}
+
+	content.ecrRegistryEndpoint = fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", config.AwsAccountID, config.AwsRegion)
 
 	return content, err
 }

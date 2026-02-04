@@ -15,6 +15,7 @@ spec:
     repository: jx3-cluster-staging
     reusePullRequest: true
   - key: kube-system
+    namespace: kube-system
     remoteCluster: true
     promotionStrategy: Manual
     repository: jx3-cluster-production

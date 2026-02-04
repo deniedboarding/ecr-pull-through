@@ -139,6 +139,12 @@ func actuallyMutate(body []byte) ([]byte, error) {
 			}
 			// explicit registry matches
 			for _, reg := range config.RegistryList() {
+				if reg == "docker.io" {
+					// implicit or explicit docker hub handling
+					if normalized, ok := normalizeDockerHubImage(image); ok {
+						image = normalized
+					}
+				}
 				if strings.HasPrefix(image, reg) {
 					newImage := fmt.Sprintf("%s/%s", config.ecrRegistryEndpoint, image)
 					patch := map[string]string{
@@ -149,23 +155,6 @@ func actuallyMutate(body []byte) ([]byte, error) {
 					p = append(p, patch)
 					log.Printf("Created patch for image %s on pod %s:%s, with %s", image, pod.Namespace, pod.ObjectMeta.GenerateName, newImage)
 					return true
-				}
-			}
-
-			// implicit or explicit docker hub handling
-			if normalized, ok := normalizeDockerHubImage(image); ok {
-				for _, reg := range config.RegistryList() {
-					if reg == "docker.io" {
-						newImage := fmt.Sprintf("%s/%s", config.ecrRegistryEndpoint, normalized)
-						patch := map[string]string{
-							"op":    "replace",
-							"path":  fmt.Sprintf(pathFmt, i),
-							"value": newImage,
-						}
-						p = append(p, patch)
-						log.Printf("Created patch for image %s on pod %s:%s, with %s", image, pod.Namespace, pod.ObjectMeta.GenerateName, newImage)
-						return true
-					}
 				}
 			}
 

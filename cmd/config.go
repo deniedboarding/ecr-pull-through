@@ -23,8 +23,8 @@ func ReadConf(filename string) (*Config, error) {
 		return nil, err
 	}
 
-	content := &Config{}
-	err = yaml.Unmarshal(buf, content)
+	content := Config{}
+	err = yaml.Unmarshal(buf, &content)
 	if err != nil {
 		return nil, fmt.Errorf("in file %q: %w", filename, err)
 	}
@@ -36,7 +36,7 @@ func ReadConf(filename string) (*Config, error) {
 
 	content.ecrRegistryEndpoint = fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", config.AwsAccountID, config.AwsRegion)
 
-	return content, err
+	return &content, err
 }
 
 func (c *Config) RegistryList() []string {

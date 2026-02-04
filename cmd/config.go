@@ -34,7 +34,7 @@ func ReadConf(filename string) (*Config, error) {
 		content.excludedImageMap[image] = true
 	}
 
-	content.ecrRegistryEndpoint = fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", config.AwsAccountID, config.AwsRegion)
+	content.ecrRegistryEndpoint = fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", content.AwsAccountID, content.AwsRegion)
 
 	return &content, err
 }

@@ -21,7 +21,6 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 var config *Config
-var logger *slog.Logger
 
 func handleMutate(w http.ResponseWriter, r *http.Request) {
 
@@ -29,7 +28,7 @@ func handleMutate(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		logger.Error("failed to read request", "error", err)
+		slog.Error("failed to read request", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "%s", err)
 	}
@@ -37,7 +36,7 @@ func handleMutate(w http.ResponseWriter, r *http.Request) {
 	// mutate the request
 	mutated, err := actuallyMutate(body)
 	if err != nil {
-		logger.Error("failed to mutate", "error", err)
+		slog.Error("failed to mutate", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "%s", err)
 	}
@@ -121,7 +120,7 @@ func actuallyMutate(body []byte) ([]byte, error) {
 		if err := json.Unmarshal(ar.Object.Raw, &pod); err != nil {
 			return nil, fmt.Errorf("unable unmarshal pod json object %v", err)
 		}
-		logger.Info("Received request to mutate pod", "namespace", pod.Namespace, "name", pod.ObjectMeta.GenerateName)
+		slog.Info("Received request to mutate pod", "namespace", pod.Namespace, "pod", pod.ObjectMeta.GenerateName)
 		// set response options
 		resp.Allowed = true
 		resp.UID = ar.UID
@@ -154,10 +153,10 @@ func actuallyMutate(body []byte) ([]byte, error) {
 						"value": newImage,
 					}
 					p = append(p, patch)
-					logger.Info("Created patch",
+					slog.Info("Created patch",
 						"image", image,
 						"namespace", pod.Namespace,
-						"name", pod.ObjectMeta.GenerateName,
+						"pod", pod.ObjectMeta.GenerateName,
 						"newImage", newImage)
 					return true
 				}
@@ -195,7 +194,7 @@ func actuallyMutate(body []byte) ([]byte, error) {
 			return nil, err // untested section
 		}
 		if len(p) > 0 {
-			logger.Info("Successfully mutated pod", "namespace", pod.Namespace, "name", pod.ObjectMeta.GenerateName)
+			slog.Info("Successfully mutated pod", "namespace", pod.Namespace, "pod", pod.ObjectMeta.GenerateName)
 		}
 	}
 
@@ -204,12 +203,20 @@ func actuallyMutate(body []byte) ([]byte, error) {
 
 func main() {
 	var err error
-	jsonHandler := slog.NewJSONHandler(os.Stderr, nil)
-	logger = slog.New(jsonHandler)
+	var level = new(slog.LevelVar)
+	jsonHandler := slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: level})
+	slog.SetDefault(slog.New(jsonHandler))
+
 	config, err = ReadConf("/etc/ecr-pull-through/registries.yaml")
 	if err != nil {
-		logger.Error("Failed to read config", "error", err)
+		slog.Error("Failed to read config", "error", err)
 		os.Exit(1)
+	}
+	if config.LogLevel != "" {
+		err = level.UnmarshalText([]byte(config.LogLevel))
+		if err != nil {
+			slog.Warn("Failed to parse log level", "error", err)
+		}
 	}
 
 	mux := http.NewServeMux()
@@ -230,16 +237,16 @@ func main() {
 	_, keyErr := os.Stat("/etc/webhook/certs/tls.key")
 
 	if os.IsNotExist(certErr) || os.IsNotExist(keyErr) {
-		logger.Info("Starting server without TLS...")
+		slog.Info("Starting server without TLS...")
 		err = s.ListenAndServe()
 		if err != nil {
-			logger.Error("Failed to run server", "error", err)
+			slog.Error("Failed to run server", "error", err)
 		}
 	} else {
-		logger.Info("Starting server with TLS...")
+		slog.Info("Starting server with TLS...")
 		err = s.ListenAndServeTLS("/etc/webhook/certs/tls.crt", "/etc/webhook/certs/tls.key")
 		if err != nil {
-			logger.Error("Failed to run server", "error", err)
+			slog.Error("Failed to run server", "error", err)
 		}
 	}
 }

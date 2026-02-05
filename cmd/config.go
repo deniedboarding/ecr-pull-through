@@ -11,8 +11,9 @@ type Config struct {
 	Registries     []string `yaml:"registries"`
 	AwsAccountID   string   `yaml:"awsAccountId"`
 	AwsRegion      string   `yaml:"awsRegion,omitempty"`
-	ExcludedImages []string `yaml:"excludedImages"`
-
+	LogLevel       string   `yaml:"logLevel,omitempty"`
+	ExcludedImages []string `yaml:"excludedImages"
+`
 	excludedImageMap    map[string]bool
 	ecrRegistryEndpoint string
 }

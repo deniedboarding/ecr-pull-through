@@ -120,7 +120,11 @@ func actuallyMutate(body []byte) ([]byte, error) {
 		if err := json.Unmarshal(ar.Object.Raw, &pod); err != nil {
 			return nil, fmt.Errorf("unable unmarshal pod json object %v", err)
 		}
-		slog.Info("Received request to mutate pod", "namespace", pod.Namespace, "pod", pod.ObjectMeta.GenerateName)
+		podName := pod.Name
+		if podName == "" {
+			podName = pod.GenerateName
+		}
+		slog.Info("Received request to mutate pod", "namespace", pod.Namespace, "pod", podName)
 		// set response options
 		resp.Allowed = true
 		resp.UID = ar.UID
@@ -156,7 +160,7 @@ func actuallyMutate(body []byte) ([]byte, error) {
 					slog.Info("Created patch",
 						"image", image,
 						"namespace", pod.Namespace,
-						"pod", pod.ObjectMeta.GenerateName,
+						"pod", podName,
 						"newImage", newImage)
 					return true
 				}
@@ -194,7 +198,7 @@ func actuallyMutate(body []byte) ([]byte, error) {
 			return nil, err // untested section
 		}
 		if len(p) > 0 {
-			slog.Info("Successfully mutated pod", "namespace", pod.Namespace, "pod", pod.ObjectMeta.GenerateName)
+			slog.Info("Successfully mutated pod", "namespace", pod.Namespace, "pod", podName)
 		}
 	}
 
